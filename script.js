@@ -31,7 +31,7 @@ document.querySelectorAll(".card").forEach(c=>{
  c.addEventListener("pointerleave",()=>c.style.transform="");
 });
 /* reveal */
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{rootMargin:"0px 0px 20% 0px",threshold:0});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting||e.boundingClientRect.top<innerHeight){e.target.classList.add("in");io.unobserve(e.target)}}),{rootMargin:"100000px 0px 20% 0px",threshold:0});
 document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
 /* logo intro: centre -> top-left corner */
 const il=$("#introLogo"),nl=$("#navLogo"),intro=$("#intro");
