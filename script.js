@@ -1,5 +1,4 @@
-/* ====== EDIT THESE ====== */
-/* Paste any real photo links here, e.g. "Banarasi":"https://.../banarasi.jpg" (style or category name) */
+
 const PHOTOS={};
 const SHOP={
   phone:"919110539022",
