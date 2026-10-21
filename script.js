@@ -24,15 +24,15 @@ $("#wa").href=`https://wa.me/${SHOP.phone}?text=${encodeURIComponent(SHOP.msg)}`
 const q=encodeURIComponent(SHOP.mapQuery);
 $("#mapBtn").href=`https://www.google.com/maps/search/?api=1&query=${q}`;
 $("#mapFrame").src=`https://maps.google.com/maps?q=${q}&output=embed`;
-$("#grid").innerHTML=ITEMS.map(([n,e,d,f])=>`<article class="card reveal" data-c="${n}" tabindex="0" role="button"><div class="img"><span>${e}</span><img src="${PHOTOS[n]||"images/"+f}" alt="${n}" onerror="this.remove()"></div><div class="t"><h3>${n}</h3><p>${d}</p><p class="best"><b>Best for:</b> ${BEST[n]}</p><span class="more">View all ${SUB[n].length} styles →</span></div></article>`).join("");
+$("#grid").innerHTML=ITEMS.map(([n,e,d,f])=>`<article class="card reveal" data-c="${n}" tabindex="0" role="button"><div class="img"><span>${e}</span><img src="${PHOTOS[n]||"images/"+f}" alt="${n}" loading="lazy" decoding="async" onerror="this.remove()"></div><div class="t"><h3>${n}</h3><p>${d}</p><p class="best"><b>Best for:</b> ${BEST[n]}</p><span class="more">View all ${SUB[n].length} styles →</span></div></article>`).join("");
 $("#ogrid").innerHTML=OCC.map(([e,t,x,r])=>`<article class="card reveal"><div class="oc">${e}</div><div class="t"><h3>${t}</h3><p>${x}</p><p class="best"><b>Suggested:</b> ${r}</p></div></article>`).join("");
 /* 3D tilt */
 document.querySelectorAll(".card").forEach(c=>{
- c.addEventListener("pointermove",e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`rotateY(${x*14}deg) rotateX(${-y*14}deg)`});
+ c.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse")return;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`rotateY(${x*14}deg) rotateX(${-y*14}deg)`});
  c.addEventListener("pointerleave",()=>c.style.transform="");
 });
 /* reveal */
-const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add("in")),{threshold:.15});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{rootMargin:"0px 0px 20% 0px",threshold:0});
 document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
 /* logo intro: centre -> top-left corner */
 const il=$("#introLogo"),nl=$("#navLogo"),intro=$("#intro");
@@ -46,22 +46,22 @@ setTimeout(()=>{
 /* hero: the real saree as animated silk cloth */
 (function(){
  const hero=$("#hero");
- function fallback(){hero.style.background=`url(${window.SAREE_DATA}) center/cover`;hero.style.animation="kb 20s ease-in-out infinite alternate"}
+ function fallback(){hero.style.background=`url(assets/saree.jpg) center/cover`;hero.style.animation="kb 20s ease-in-out infinite alternate"}
  try{
- const cv=$("#bg"),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));
+ const mob=innerWidth<700,cv=$("#bg"),R=new THREE.WebGLRenderer({canvas:cv,antialias:!mob,powerPreference:"high-performance"});R.setPixelRatio(Math.min(devicePixelRatio,mob?1.25:2));
  const S=new THREE.Scene(),C=new THREE.PerspectiveCamera(50,1,.1,100);C.position.z=10;
- const PW=12,PH=16,g=new THREE.PlaneGeometry(PW,PH,64,84);
- const cloth=new THREE.Mesh(g,new THREE.MeshPhongMaterial({map:new THREE.TextureLoader().load(window.SAREE_DATA),specular:0xffd27a,shininess:55}));S.add(cloth);
+ const PW=12,PH=16,g=new THREE.PlaneGeometry(PW,PH,mob?26:48,mob?34:64);
+ const cloth=new THREE.Mesh(g,new THREE.MeshPhongMaterial({map:new THREE.TextureLoader().load("assets/saree.jpg"),specular:0xffd27a,shininess:55}));S.add(cloth);
  const o=g.attributes.position.array.slice();
  S.add(new THREE.AmbientLight(0xffffff,.8));const L=new THREE.PointLight(0xffe0a0,1.5,80);S.add(L);
  const n=innerWidth<600?120:260,pp=new Float32Array(n*3);for(let i=0;i<n*3;i++)pp[i]=(Math.random()-.5)*(i%3==2?4:20);
  const pg=new THREE.BufferGeometry();pg.setAttribute("position",new THREE.BufferAttribute(pp,3));
  const dust=new THREE.Points(pg,new THREE.PointsMaterial({color:0xffe6a0,size:.07,transparent:true,opacity:.85}));dust.position.z=3;S.add(dust);
  let mx=0,my=0;addEventListener("pointermove",e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
- function size(){R.setSize(innerWidth,innerHeight);C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();
+ let lw=0;function size(){if(innerWidth===lw)return;lw=innerWidth;R.setSize(innerWidth,innerHeight,false);C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();
   const h=2*Math.tan(25*Math.PI/180)*10,w=h*C.aspect,s=Math.max(w/PW,h/PH)*1.3;cloth.scale.set(s,s,1)}
  size();addEventListener("resize",size);
- (function loop(t){t*=.001;requestAnimationFrame(loop);if(scrollY>innerHeight*1.2)return;
+ let last=0;(function loop(t){t*=.001;requestAnimationFrame(loop);if(scrollY>innerHeight*1.2||document.hidden||t-last<.033||document.getElementById("modal").classList.contains("open"))return;last=t;
   const a=g.attributes.position;
   for(let i=0;i<a.count;i++){const x=o[i*3],y=o[i*3+1];a.array[i*3+2]=Math.sin(x*1.3+t*.9)*.45+Math.sin(x*2.6-t*.7+y*.25)*.18+Math.cos(y*.45+t*.55)*.3}
   a.needsUpdate=true;g.computeVertexNormals();
@@ -77,7 +77,7 @@ const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,"-");
 function openCat(n){
  const emoji=ITEMS.find(i=>i[0]==n)[1];
  $("#mtitle").textContent=n;$("#mdesc").textContent=ITEMS.find(i=>i[0]==n)[2]+" Best for: "+BEST[n]+".";
- mg.innerHTML=SUB[n].map(([t,d])=>`<article class="card sub"><div class="img"><span>${emoji}</span><img src="${PHOTOS[t]||"images/"+slug(t)+".jpg"}" alt="${t}" loading="lazy" onerror="this.remove()"></div><div class="t"><h3>${t}</h3><p>${d}</p><p class="best"><b>Best for:</b> ${BEST[t]||""}</p></div></article>`).join("");
+ mg.innerHTML=SUB[n].map(([t,d])=>`<article class="card sub"><div class="img"><span>${emoji}</span><img src="${PHOTOS[t]||"images/"+slug(t)+".jpg"}" alt="${t}" loading="lazy" decoding="async" onerror="this.remove()"></div><div class="t"><h3>${t}</h3><p>${d}</p><p class="best"><b>Best for:</b> ${BEST[t]||""}</p></div></article>`).join("");
  md.classList.add("open");document.body.style.overflow="hidden";md.scrollTop=0;
 }
 function closeCat(){md.classList.remove("open");document.body.style.overflow=""}
